@@ -1,0 +1,18 @@
+{
+     // Unique name of the plugin
+     "name": "kubernetes",
+
+     // URL of plugin host page that bootstraps plugin code
+     // This URL maps to $ENGINE_USR/ui-plugins/kubernetes-resource/plugin.html
+     "url": "plugin/kubernetes/plugin.html",
+
+     // Path to plugin resource files relative to descriptor
+     // This path maps to $ENGINE_USR/ui-plugins/kubernetes-resources
+     "resourcePath": "kubernetes-resources",
+
+     // Default configuration associated with the plugin
+     "config": {
+        "allowedOrigins": ["https://127.0.0.1"],
+        "apiEntryPoint": "https://127.0.0.1/ovirt-ui-plugins/kubernetes/kubernetes-resources/"
+     }
+}

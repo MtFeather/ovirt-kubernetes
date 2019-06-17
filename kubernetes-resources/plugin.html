@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="/ovirt-engine/webadmin/theme/00-ovirt.brand/bundled/jquery/jquery.min.js"></script>
+    <script type='text/javascript'>
+      var api = parent.pluginApi('kubernetes');
+      var KUBERNETES_PLUGIN_MESSAGE_DELIM = ':';
+      var KUBERNETES_PLUGIN_MESSAGE_PREFIX = 'kubernetes-plugin';
+      var url = api.engineBaseUrl();
+      // Get runtime plugin configuration, i.e. custom configuration (if any)
+      // merged on top of default configuration (if any)
+      var config = api.configObject();
+
+      function init(apiEntryPoint){
+        var Url = apiEntryPoint + "function.php?f=checkApi";
+        $.ajax({
+          type: "GET",
+          url: Url,
+          success: function(result){
+            api.addPrimaryMenuContainer('Kubernetes', 'kubernetes',
+              {
+                priority: 1, // negative priority will be the top menu item.
+                icon: 'fa-cube' // font-awesome trophy icon.
+              }
+            );
+            api.addSecondaryMenuPlace('kubernetes', 'Pods', 'pods',
+              '/ovirt-ui-plugins/kubernetes/kubernetes-resources/pods.html'
+            );
+          },
+          error: function(xhr, status, error){
+            api.addPrimaryMenuPlace('Kubernetes', 'kubernetes',
+              'plugin/kubernetes/error.html',
+              {
+                priority: 1, // negative priority will be the top menu item.
+                icon: 'fa-cube' // font-awesome trophy icon.
+              }
+            );
+          }
+        });
+      }
+
+      api.options({
+        // Configure source origin(s), i.e. protocol://domain:port
+        // from which HTML5 message events will be accepted
+        allowedMessageOrigins: config.allowedOrigins
+      });
+
+      api.register({
+        UiInit: function(){
+          init(config.apiEntryPoint);
+        },
+        MessageReceived: function(data, sourceWindow) {
+          if (typeof data !== 'string') {
+              return;
+          }
+
+          var tuple = data.split(KUBERNETES_PLUGIN_MESSAGE_DELIM);
+            if (tuple[0] !== KUBERNETES_PLUGIN_MESSAGE_PREFIX) {
+                return;
+          }
+
+          switch (tuple[1]) {
+            case 'getPodsList':
+              formWindow = sourceWindow;
+              getPodsList(config.apiEntryPoint);
+              break;
+          }
+        }
+      });
+      api.ready();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
