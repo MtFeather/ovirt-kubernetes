@@ -31,15 +31,16 @@ function getPodsList(){
   curl_close($ch);
   $pods = json_decode($output,true);
   $data = array();
+  $nowtime = time();
   foreach($pods["items"] as $pod){
     $nestedData=array();
     $nestedData['name'] = $pod['metadata']['name'];
     $nestedData['host_ip'] = $pod['status']['hostIP'];
     $nestedData['pod_ip'] = $pod['status']['podIP'];
     $nestedData['restarts'] = $pod['status']['containerStatuses'][0]['restartCount'];
-    $nestedData['container_name'] = $pod['spec']['containers'][0]['name'];
-    $nestedData['container_image'] = $pod['spec']['containers'][0]['image'];
     $nestedData['status'] = $pod['status']['phase'];
+    $starttime = $pod['status']['startTime'];
+    $nestedData['uptime'] = countTime($nowtime, $starttime);
     $data[] = $nestedData;
   }
   $json_data = array("data" => $data);
@@ -71,6 +72,43 @@ function createPod(){
       echo "Code: ".$code.", Message: ".$message.".";
     }
     curl_close ($ch);
+  }
+}
+
+function deletePod(){
+  global $apiEntryPoint;
+  $pods = $_POST["pods"];
+  if (!empty($pods)) {
+    foreach ($pods as &$pod) {
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL,$apiEntryPoint."/api/v1/namespaces/default/pods/".$pod);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, Array("Content-Type: application/json"));
+      curl_setopt($ch, CURLOPT_HEADER, 1);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+      curl_setopt($ch, CURLOPT_POSTFIELDS, "$comment");
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      curl_exec($ch);
+      curl_close ($ch);
+    }
+    echo "ok";
+  }
+}
+
+function countTime($nowtime, $starttime){
+  $starttime = strtotime($starttime); 
+  $uptime = $nowtime - $starttime;
+  if ($uptime < 60){
+    return $uptime." sec";
+  } else if ($uptime < 3600) {
+    $mins = (int)($uptime / 60);
+    return $mins." mins";
+  } else if ($uptime < 86400) {
+    $hours = (int)($uptime / 3600);
+    return $hours." hours";
+  } else if ($uptime >= 86400){
+    $days = (int)($uptime / 86400);
+    return $days." days";
   }
 }
 

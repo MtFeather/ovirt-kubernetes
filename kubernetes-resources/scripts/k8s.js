@@ -1,13 +1,52 @@
 $(document).ready(function(){
   $.fn.dataTable.ext.classes.sPageButton = 'btn btn-default GKGFBNLBANB';
+
   getPodsList();
+
   $("#newForm").submit(function(event) {
     event.preventDefault();
     if (validateNewForm() != 'false') {
       createPod();
     }
   });
+
   $('#newAlertClose').click().hide('fade');
+
+  var pods_Table = $("#pods_table").DataTable();
+  pods_Table.on( 'select.dt deselect.dt', function (){
+    var rows = pods_Table.rows( { selected: true } ).indexes().length;
+    if(rows === 0){
+      $('#deleteBtn').attr('disabled', true);
+      $('#consoleBtn').attr('disabled', true);
+    } else if(rows === 1){
+      $('#consoleBtn').attr('disabled', false);
+      $('#deleteBtn').attr('disabled', false);
+    } else {
+      $('#consoleBtn').attr('disabled', true);
+      $('#deleteBtn').attr('disabled', false);
+    }
+  });
+
+  $('#deleteBtn').click(function(){
+    var rows = pods_Table.rows( { selected: true } ).indexes();
+    var names = pods_Table.rows(rows).data().pluck('name').toArray();
+    $('#deleteItems').html('');
+    for (name of names) {
+      $('#deleteItems').append("<div>- " + name + "</div>");
+    }
+  });
+
+  $('#deleteModal button[type=submit]').click(function(){
+    $('#deleteModal').modal('hide');
+    var rows = pods_Table.rows( { selected: true } ).indexes();
+    var names = pods_Table.rows(rows).data().pluck('name').toArray();
+    deletePod(names);
+  });
+  $('#consoleBtn').click(function(){
+    var rows = pods_Table.rows( { selected: true } ).indexes();
+    var name = pods_Table.rows(rows).data().pluck('name').toArray()[0];
+    $(location).attr('href','shell.php?name='+ name);
+  });
 });
 
 var KUBERNETES_PLUGIN_MESSAGE_PREFIX = 'kubernetes-plugin';
@@ -38,9 +77,8 @@ function getPodsList(){
        { "data": "host_ip" },
        { "data": "pod_ip" },
        { "data": "restarts" },
-       { "data": "container_name" },
-       { "data": "container_image" },
-       { "data": "status" }
+       { "data": "status" },
+       { "data": "uptime" }
     ],
     "dom": "<'content-view-pf-pagination clearfix'"+
            "<'form-group'B>"+
@@ -63,7 +101,9 @@ function getPodsList(){
       "targets": 0,
       "orderable": false 
     }],
-    select: true,
+    select: {
+      items: 'row'
+    },
     buttons: [
       {
         "text": '<i class="fa fa-refresh"></i>',
@@ -74,14 +114,17 @@ function getPodsList(){
       }
     ]
   });
+
   $('#SearchPanelView_searchStringInput').keyup(function(){
     pods_Table.search($(this).val()).draw();
   });
+
   $('#SearchPanelView_searchClean').click(function(){
     $('#SearchPanelView_searchStringInput').val('');
     pods_Table.search('').draw();
   });
 }
+
 function validateNewForm() {
   var e = '';
     if ($('#comment').val() == '') {
@@ -92,6 +135,7 @@ function validateNewForm() {
     }
   return e;
 }
+
 function createPod() {
   $.ajax({
     url: "function.php?f=createPod",
@@ -107,6 +151,18 @@ function createPod() {
         $('#newAlert div').html(result);
         $('#newAlert').show('fade');
       }
+    }
+  });
+}
+
+function deletePod(pods) {
+  $.ajax({
+    url: "function.php?f=deletePod",
+    method: "POST",
+    data: { pods: pods },
+    success: function(result){
+      alert('Has been released to delete the pod(s).\nPlease reflash table to check.');
+      $('#deleteModal').modal('hide');
     }
   });
 }
