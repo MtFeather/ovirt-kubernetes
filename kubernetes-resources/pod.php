@@ -21,6 +21,8 @@
     $status = $obj['status']['phase'];
     $node = $obj['spec']['nodeName'];
     $ip = $obj['status']['podIP'];
+    $containers = $obj['spec']['containers'];
+    $conditions = $obj['status']['conditions'];
   }
 ?>
 <!DOCTYPE html>
@@ -57,6 +59,9 @@
         color:#777;
         word-wrap:break-word;
       }
+      .block {
+        display: block;
+      }
       .content-view-pf-pagination .btn-pagination {
         display: -ms-flexbox;
         display: flex;
@@ -92,9 +97,7 @@
           <ul class="nav nav-tabs nav-tabs-pf">
             <li class="active"><a data-toggle="tab" href="#general">General</a></li>
             <li><a data-toggle="tab" href="#container">Container</a></li>
-            <li><a data-toggle="tab" href="#">Secondary Tab Three</a></li>
-            <li><a data-toggle="tab" href="#">Secondary Tab Four</a></li>
-            <li><a data-toggle="tab" href="#">Secondary Tab Five</a></li>
+            <li><a data-toggle="tab" href="#conditions">Conditions</a></li>
           </ul>
           <div class="container-fluid GKGFBNLBGVB">
             <div class="obrand_detail_tab tab-content">
@@ -181,7 +184,84 @@
                 </div>
               </div>
               <div class="tab-pane fade" id="container">
-                  asdasdasd
+              <?php 
+                foreach ($containers as $container) {
+                  $c_name = $container['name'];
+                  $c_image = $container['image'];
+                  $c_env = $container['env'];
+                  $c_command = $container['command'];
+                  $c_args = $container['args'];
+              ?>
+                <div class="col-xs-6">
+                  <div class="card-pf card-pf-accented">
+                    <h2 class="card-pf-title"><?php echo $c_name; ?></h2>
+                    <div class="card-pf-body">
+                      <div class="row">
+                        <div class="col-xs-4">
+                          <div class="GKGFBNLBFOB">Image:</div>
+                        </div>
+                        <div class="col-xs-8">
+                          <span class="GKGFBNLBGOB"><?php  echo $c_image; ?></span>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-xs-4">
+                          <div class="GKGFBNLBFOB">Environmental variables:</div>
+                        </div>
+                        <div class="col-xs-8">
+                        <?php foreach ($c_env as $env) { ?>
+                          <span class="GKGFBNLBGOB block"><?php  echo $env['name'].": <code>".$env['value']."</code>"; ?></span>
+                        <?php } ?>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-xs-4">
+                          <div class="GKGFBNLBFOB">Command:</div>
+                        </div>
+                        <div class="col-xs-8">
+                        <?php foreach ($c_command as $command) { ?>
+                          <span class="GKGFBNLBGOB block"><?php  echo $command; ?></span>
+                        <?php } ?>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-xs-4">
+                          <div class="GKGFBNLBFOB">Argument:</div>
+                        </div>
+                        <div class="col-xs-8">
+                        <?php foreach ($c_args as $arg) { ?>
+                          <span class="GKGFBNLBGOB block"><?php  echo $arg; ?></span>
+                        <?php } ?>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <?php } ?>
+              </div>
+              <div class="tab-pane fade" id="conditions">
+                <div class="table-responsive">          
+                  <table class="table table-bordered table-striped">
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Last probe time</th>
+                        <th>Last transition time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($conditions as $condition) { ?>
+                      <tr>
+                        <td><?php echo $condition['type']; ?></td>
+                        <td><?php echo $condition['status']; ?></td>
+                        <td><?php echo $condition['lastProbeTime']; ?></td>
+                        <td><?php echo $condition['lastTransitionTime']; ?></td>
+                      </tr>
+                    <?php } ?>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
