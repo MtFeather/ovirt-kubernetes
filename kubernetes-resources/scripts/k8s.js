@@ -266,11 +266,11 @@ function getPodsList(){
   });
 }
 
-function createPod() {
+function createPod(students) {
   $.ajax({
     url: "function.php?f=createPod",
     method: "POST",
-    data: { namespace: $('#namespaces').val(), comment: $('#newComment').val() },
+    data: { namespace: $('#namespaces').val(), comment: $('#newComment').val(), students: students },
     success: function(result) {
       if (result == 'ok') {
         alert('Create Pod Successfully.');
@@ -340,4 +340,87 @@ function validateForm(c) {
       $('#'+c).parents('.form-group').removeClass('has-error');
     }
   return e;
+}
+
+function getCurriculumName() {
+  $.ajax({
+    url: "function.php?f=getCurriculumName",
+    method: "GET",
+    success: function(result) {
+      var data = JSON.parse(result);
+      $('#curriculum').append('<option value="null">Choose a curriculum</option>');
+      for (var i=0; i<data.length; i++) {
+        $('#curriculum').append('<option value="'+data[i].id+'">'+data[i].name+'</option>');
+      }
+    }
+  });
+}
+
+function addPodList(namespace, c_select) {
+   var table = $("#add_table").DataTable({
+    "ajax": {
+      url: "function.php?f=addPodList",
+      type: "POST",
+      data: function(d){
+        d.namespace = namespace;
+        d.classId = c_select;
+      }
+    },
+    "columns": [
+       {
+         "data": "id",
+         "render": function ( data, type, row, meta ) {
+           return '<input type="checkbox" value="'+data+'">';
+         }
+       },
+       { "data": "account" },
+       { "data": "name" },
+    ],
+    "dom": "<'content-view-pf-pagination clearfix'"+
+           "<'form-group'B>"+
+           "<'form-group'<i><'btn-group btn-pagination'p>>>t",
+    "pagingType": "simple_numbers",
+    "pageLength": 10,
+    "language": {
+      "zeroRecords": "No matching records found",
+      "info": "_START_ - _END_",
+      "paginate": {
+        "previous": '<i class="fa fa-angle-left"></i>',
+        "next": '<i class="fa fa-angle-right"></i>'
+      },
+      "select": {
+        rows: ""
+      }
+    },
+    "order": [[ 1, "asc" ]],
+    "columnDefs": [
+      {
+        targets: 0,
+        orderable: false
+      }
+    ],
+    select: {
+      items: 'row',
+      style: 'multi',
+      selector: 'td:first-child input:checkbox'
+    },
+    buttons: [
+      {
+        "text": '<i class="fa fa-refresh"></i>',
+        "className": 'btn btn-default',
+        "action": function ( e, dt, node, config ) {
+          dt.ajax.reload();
+        }
+      }
+    ]
+  });
+
+  $('#addTable_search').keyup(function(){
+    table.search($(this).val()).draw();
+  });
+
+  $('#addTable_searchClean').click(function(){
+    $('#addTable_search').val('');
+    table.search('').draw();
+  });
 }

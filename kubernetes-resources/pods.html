@@ -188,6 +188,46 @@
                     </div>
                     <div class="row">
                       <div class="col-sm-12">
+                        <div class="input-group">
+                          <span class="input-group-addon">Curriculums:</span>
+                          <select class="form-control" name="curriculum_select" id="curriculum">
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <hr style="margin-top: 5px; margin-bottom: 10px;"/>
+                    <div class="collapse" id="add_collapse">
+                      <div class="row">
+                        <div class="col-sm-6">
+                          <div class="input-group">
+                            <span class="input-group-addon">Search:</span>
+                            <input type="text" class="form-control" id="addTable_search">
+                            <span class="input-group-btn">
+                              <button type="button" class="btn btn-default" id="addTable_searchClean"><i class="fa fa-close"></i> </button>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-sm-12">
+                          <div class="table-responsive">
+                            <table class="table table-bordered table-striped" id="add_table">
+                              <thead>
+                                <tr>
+                                  <th><input id="checkboxAdd" type="checkbox"></th>
+                                  <th>Account</th>
+                                  <th>Name</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-sm-12">
                         <div class="form-group">
                           <label for="comment">Fill in the YAML or JSON file content.</label>
                           <textarea class="form-control" rows="20" style="min-width: 100%; height:100%; resize: vertical;" id="newComment"></textarea>
@@ -200,7 +240,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: nginx
+  generateName: nginx-
   labels:
     app: nginx
 spec:
@@ -316,10 +356,43 @@ spec:
         $("#pods_table").DataTable().ajax.reload();
       });
 
+      $('#newBtn').click(function(){
+        $("#add_collapse").slideUp();
+        $('#curriculum').html('');
+        getCurriculumName();
+      });
+
+      $('#curriculum').change(function(){
+        var namespace = $('#namespaces').val();
+        var c_select = $('#curriculum').val();
+        $('#checkboxAdd').prop('checked', false);
+        if (c_select == "null") {
+          $("#add_collapse").slideUp();
+          $('#add_table').DataTable().clear().draw();
+        } else {
+          addPodList(namespace, c_select);
+          $("#add_collapse").slideDown();
+        }
+      });
+
+      $('#checkboxAdd').click(function(){
+        var table = $("#add_table").DataTable();
+        $('#add_table input:checkbox').prop('checked', this.checked);
+        if ($('#checkboxAdd').is(':checked'))
+          table.rows().select();
+        else
+          table.rows().deselect();
+      });
+
       $('#newForm').submit(function(event) {
         event.preventDefault();
-        if (validateForm('newComment') != 'false') {
-          createPod();
+        var students = $('#add_table td input:checkbox:checked').map(function(){
+              return $(this).val();
+            }).get();
+        if (students.length == 0) {
+          alert('Please choose student!');
+        } else if (validateForm('newComment') != 'false') {
+          createPod(students);
         }
       });
 
@@ -362,7 +435,8 @@ spec:
         var pods_Table = $("#pods_table").DataTable();
         var rows = pods_Table.rows( { selected: true } ).indexes();
         var name = pods_Table.rows(rows).data().pluck('name').toArray()[0];
-        window.open('shell.php?name='+ name);
+        var namespace = $('#namespaces').val();
+        window.open('shell.php?name='+ name +'&namespace='+ namespace);
       });
     });
   </script>
