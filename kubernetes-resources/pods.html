@@ -377,16 +377,20 @@ spec:
 
       $('#checkboxAdd').click(function(){
         var table = $("#add_table").DataTable();
-        $('#add_table input:checkbox').prop('checked', this.checked);
-        if ($('#checkboxAdd').is(':checked'))
+        var allPages = table.cells().nodes();
+        if ($('#checkboxAdd').is(':checked')) {
+          $(allPages).find('input:checkbox').prop('checked', true);
           table.rows().select();
-        else
+        } else {
+          $(allPages).find('input:checkbox').prop('checked', false);
           table.rows().deselect();
+        }
       });
 
       $('#newForm').submit(function(event) {
         event.preventDefault();
-        var students = $('#add_table td input:checkbox:checked').map(function(){
+        var allPages = $("#add_table").DataTable().cells().nodes();
+        var students = $(allPages).find('input:checkbox:checked').map(function(){
               return $(this).val();
             }).get();
         if (students.length == 0) {

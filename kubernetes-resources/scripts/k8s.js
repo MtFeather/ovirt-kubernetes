@@ -37,7 +37,8 @@ function getNamespacesList(){
        {
          "data": "name",
          "render": function ( data, type, row, meta ) {
-           return '<a href="/ovirt-engine/webadmin/?#hosts-general;name='+data+'" target="_parent">'+data+'</a>';
+           //return '<a href="/ovirt-engine/webadmin/?#hosts-general;name='+data+'" target="_parent">'+data+'</a>';
+           return data;
          }
        },
        { 
